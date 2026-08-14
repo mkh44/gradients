@@ -62,16 +62,17 @@ def get_wavelengths():
     from scipy.interpolate import griddata
     grid_z0orig = griddata(points, PeakW_results, (grid_x, grid_y), method='nearest') #
     grid_z0 = gaussian_filter(grid_z0orig,6)
-    plt.figure(figsize=(10,3))                 #new figure
-    plt.title('Wavelength (nm)')
-    plt.xlim(0,80)                              #sets the x axis limit to highest x value with 2.5 border, changed 75 to 95
-    plt.ylim(0,30)                              #sets the y axis limit to highest y value with 2.5 border, changed 25 to 50
-    plt.imshow(grid_z0.T, extent=(0,max(x_values),0,max(y_values)), origin='lower',cmap='coolwarm',vmin=minv,vmax=maxv)
-    cbar=plt.colorbar(label='Wavelength (nm)') #Creates a colorbar for the transmission / wavelength
-    #plt.title("{} {} ({})".format(Names[l].split()[0],Names[l].split()[1],Name_of_File)) #Allows us to iterate through the different data titles
-    save_path = os.path.join(output_loc, f'peakW_{Name_of_File}.svg')
-    plt.savefig(save_path, bbox_inches='tight') #Save different data titles as pdf
-    plt.show()
+    return PeakW_results
+    # plt.figure(figsize=(10,3))                 #new figure
+    # plt.title('Wavelength (nm)')
+    # plt.xlim(0,80)                              #sets the x axis limit to highest x value with 2.5 border, changed 75 to 95
+    # plt.ylim(0,30)                              #sets the y axis limit to highest y value with 2.5 border, changed 25 to 50
+    # plt.imshow(grid_z0.T, extent=(0,max(x_values),0,max(y_values)), origin='lower',cmap='coolwarm',vmin=minv,vmax=maxv)
+    # cbar=plt.colorbar(label='Wavelength (nm)') #Creates a colorbar for the transmission / wavelength
+    # #plt.title("{} {} ({})".format(Names[l].split()[0],Names[l].split()[1],Name_of_File)) #Allows us to iterate through the different data titles
+    # save_path = os.path.join(output_loc, f'peakW_{Name_of_File}.svg')
+    # plt.savefig(save_path, bbox_inches='tight') #Save different data titles as pdf
+    # plt.show()
 
 output_loc = r"C:\Users\molly\OneDrive\Masters\Data\MT1\Outputs"
 input_loc = r"C:\Users\molly\OneDrive\Masters\Data\MT1"
@@ -79,4 +80,5 @@ my_file = open(os.path.join(input_loc,"MT1 Results.txt"))
 minv = 350
 maxv = 750
 
-get_wavelengths()
+plt.plot(get_wavelengths())
+plt.show()
