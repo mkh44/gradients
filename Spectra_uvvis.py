@@ -10,10 +10,9 @@ def get_wavelengths():
     axis_results=[]
     x_values = []
     y_values = []
-    PeakT_values = []
     points = []
     i = 1
-    Name = ['Peak Wavelength (nm)']
+
 
     for line in my_file:
         # Strip whitespace and newline characters before splitting
@@ -76,9 +75,8 @@ def get_wavelengths():
 
 output_loc = r"C:\Users\molly\OneDrive\Masters\Data\MT1\Outputs"
 input_loc = r"C:\Users\molly\OneDrive\Masters\Data\MT1"
-my_file = open(os.path.join(input_loc,"MT1 Results.txt"))
+my_file = open(os.path.join(input_loc,"MT1.zip"))
 minv = 350
 maxv = 750
 
-plt.plot(get_wavelengths())
-plt.show()
+from
