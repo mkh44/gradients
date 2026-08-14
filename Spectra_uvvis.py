@@ -4,11 +4,8 @@ from scipy.ndimage import gaussian_filter
 import os
 
 
-def transmission_map():
+def get_wavelengths():
     temp_data=[]
-    PeakT_results=[]
-    MinT_results=[]
-    AvgT_results=[]
     PeakW_results=[]
     axis_results=[]
     x_values = []
@@ -16,8 +13,7 @@ def transmission_map():
     PeakT_values = []
     points = []
     i = 1
-    Names = ['Peak Transmission (%)', 'Minimum Transmission (%)', 'Average Transmission (%)','Peak Wavelength (nm)']
-    Order = [PeakT_results, MinT_results, AvgT_results, PeakW_results]
+    Name = ['Peak Wavelength (nm)']
 
     for line in my_file:
         # Strip whitespace and newline characters before splitting
@@ -44,18 +40,12 @@ def transmission_map():
 
         # Extract numerical values using more robust string manipulation
         try:
-            PeakT_results.append(float((temp_data[i + 2][0].split('=')[1]).strip('\n  %')))
-            MinT_results.append(float((temp_data[i + 3][0].split('=')[1]).strip('\n  %')))
-            AvgT_results.append(float((temp_data[i + 4][0].split('=')[1]).strip('\n  %')))
             PeakW_results.append(float((temp_data[i + 5][0].split('=')[1]).strip('\n  nm')))
         except (IndexError, ValueError) as e:
             print(f"Error parsing data on line {i}: {e}")
         i = i + 9
 
     for n in range(0,len(axis_results)): #iterate over all of the values in the axis_results list
-        #y_values.append(float(axis_results[n][0].strip('y'))) #adds all of the y values to a list called y_values
-        #x_values.append(float(axis_results[n][1].strip('x'))) #adds all of the x values to a list called x_values
-        #points.append([float(axis_results[n][1].strip('x')),float(axis_results[n][0].strip('y'))])
         y_value_str = axis_results[n][0].strip('y')
         x_value_str = axis_results[n][1].strip('x')
         if y_value_str and x_value_str: # Check if strings are not empty
@@ -66,28 +56,27 @@ def transmission_map():
         if temp_data[1][0][i:i+2] == '-y': #if two characters next to each other are '-y'
             Name_of_File = temp_data[1][0][0:i] #Name_of_File is the string before those two characters
 
-    for l in range(0,4): #We iterate over the four different types of values we are looking for, that being, Peak T, Min T, Avg T and Peak Wavelength.
-        points = np.array(points) #Makes an array of the x and y points
-        grid_x, grid_y = np.mgrid[2.5:max(x_values):950j, 2.5:max(y_values):500j] #Creates our x and y grid from 2.5 to max x/y value with 1,000 and 2,000 points, changed 750,250 to 950 & 500
-        values = np.array(Order[l]) #creates a numpy array for our z values
-        from scipy.interpolate import griddata
-        grid_z0orig = griddata(points, values, (grid_x, grid_y), method='nearest') #
-        grid_z0 = gaussian_filter(grid_z0orig,6)
-        plt.figure(figsize=(10,3))                 #new figure
-        plt.title(Names[l])
-        plt.xlim(0,80)                              #sets the x axis limit to highest x value with 2.5 border, changed 75 to 95
-        plt.ylim(0,30)                              #sets the y axis limit to highest y value with 2.5 border, changed 25 to 50
-        plt.imshow(grid_z0.T, extent=(0,max(x_values),0,max(y_values)), origin='lower',cmap='coolwarm',vmin=minv,vmax=maxv)
-        cbar=plt.colorbar(label='{} {}'.format(Names[l].split()[1],Names[l].split()[2])) #Creates a colorbar for the transmission / wavelength
-        #plt.title("{} {} ({})".format(Names[l].split()[0],Names[l].split()[1],Name_of_File)) #Allows us to iterate through the different data titles
-        save_path = os.path.join(output_loc, '{} {} ({}).svg'.format(Names[l].split()[0],Names[l].split()[1],Name_of_File))
-        plt.savefig(save_path, bbox_inches='tight') #Save different data titles as pdf
-        plt.show()
+
+    points = np.array(points) #Makes an array of the x and y points
+    grid_x, grid_y = np.mgrid[2.5:max(x_values):950j, 2.5:max(y_values):500j] #Creates our x and y grid from 2.5 to max x/y value with 1,000 and 2,000 points, changed 750,250 to 950 & 500
+    from scipy.interpolate import griddata
+    grid_z0orig = griddata(points, PeakW_results, (grid_x, grid_y), method='nearest') #
+    grid_z0 = gaussian_filter(grid_z0orig,6)
+    plt.figure(figsize=(10,3))                 #new figure
+    plt.title('Wavelength (nm)')
+    plt.xlim(0,80)                              #sets the x axis limit to highest x value with 2.5 border, changed 75 to 95
+    plt.ylim(0,30)                              #sets the y axis limit to highest y value with 2.5 border, changed 25 to 50
+    plt.imshow(grid_z0.T, extent=(0,max(x_values),0,max(y_values)), origin='lower',cmap='coolwarm',vmin=minv,vmax=maxv)
+    cbar=plt.colorbar(label='Wavelength (nm)') #Creates a colorbar for the transmission / wavelength
+    #plt.title("{} {} ({})".format(Names[l].split()[0],Names[l].split()[1],Name_of_File)) #Allows us to iterate through the different data titles
+    save_path = os.path.join(output_loc, f'peakW_{Name_of_File}.svg')
+    plt.savefig(save_path, bbox_inches='tight') #Save different data titles as pdf
+    plt.show()
 
 output_loc = r"C:\Users\molly\OneDrive\Masters\Data\MT1\Outputs"
 input_loc = r"C:\Users\molly\OneDrive\Masters\Data\MT1"
 my_file = open(os.path.join(input_loc,"MT1 Results.txt"))
-minv = 60
-maxv = 90
+minv = 350
+maxv = 750
 
-transmission_map()
+get_wavelengths()
