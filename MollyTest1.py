@@ -1,0 +1,85 @@
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.ndimage import gaussian_filter
+
+my_file = open("MT1 Results.txt")
+
+temp_data=[]
+PeakT_results=[]
+MinT_results=[]
+AvgT_results=[]
+PeakW_results=[]
+axis_results=[]
+x_values = []
+y_values = []
+PeakT_values = []
+points = []
+i = 1
+Names = ['Peak Transmission (%)', 'Minimum Transmission (%)', 'Average Transmission (%)','Peak Wavelength (nm)']
+Order = [PeakT_results, MinT_results, AvgT_results, PeakW_results]
+
+for line in my_file:
+    # Strip whitespace and newline characters before splitting
+    line = line.strip()
+    if line:  # Check if the line is not empty
+        temp_data += [line.split(',')]
+
+while i < len(temp_data):
+    # Process the line containing sample name and coordinates, e.g., 'MollyTest1-y2-x8'
+    sample_coord_line = temp_data[i][0]
+
+    # Find the positions of '-y' and '-x' to extract the coordinates
+    idx_y_prefix = sample_coord_line.find('-y')
+    idx_x_prefix = sample_coord_line.find('-x')
+
+    if idx_y_prefix != -1 and idx_x_prefix != -1:
+        # Extract the y and x values as strings
+        y_val_str = sample_coord_line[idx_y_prefix + 2 : idx_x_prefix] # '2' from 'MollyTest1-y2-x8'
+        x_val_str = sample_coord_line[idx_x_prefix + 2 :] # '8' from 'MollyTest1-y2-x8'
+        # Append them to axis_results in the format expected by the subsequent loop
+        axis_results.append([f'y{y_val_str}', f'x{x_val_str}'])
+    else:
+        print(f"Warning: Could not parse y-x coordinates from line: '{sample_coord_line}'")
+
+    # Extract numerical values using more robust string manipulation
+    try:
+        PeakT_results.append(float((temp_data[i + 2][0].split('=')[1]).strip('\n  %')))
+        MinT_results.append(float((temp_data[i + 3][0].split('=')[1]).strip('\n  %')))
+        AvgT_results.append(float((temp_data[i + 4][0].split('=')[1]).strip('\n  %')))
+        PeakW_results.append(float((temp_data[i + 5][0].split('=')[1]).strip('\n  nm')))
+    except (IndexError, ValueError) as e:
+        print(f"Error parsing data on line {i}: {e}")
+    i = i + 9
+
+for n in range(0,len(axis_results)): #iterate over all of the values in the axis_results list
+    #y_values.append(float(axis_results[n][0].strip('y'))) #adds all of the y values to a list called y_values
+    #x_values.append(float(axis_results[n][1].strip('x'))) #adds all of the x values to a list called x_values
+    #points.append([float(axis_results[n][1].strip('x')),float(axis_results[n][0].strip('y'))])
+    y_value_str = axis_results[n][0].strip('y')
+    x_value_str = axis_results[n][1].strip('x')
+    if y_value_str and x_value_str: # Check if strings are not empty
+        y_values.append(float(y_value_str)) #adds all of the y values to a list called y_values
+        x_values.append(float(x_value_str)) #adds all of the x values to a list called x_values
+        points.append([float(x_value_str),float(y_value_str)])
+for i in range(0,len(temp_data[1][0])): #iterates over the first sample name in the results text file
+    if temp_data[1][0][i:i+2] == '-y': #if two characters next to each other are '-y'
+        Name_of_File = temp_data[1][0][0:i] #Name_of_File is the string before those two characters
+
+for l in range(0,4): #We iterate over the four different types of values we are looking for, that being, Peak T, Min T, Avg T and Peak Wavelength.
+    points = np.array(points) #Makes an array of the x and y points
+    grid_x, grid_y = np.mgrid[2.5:max(x_values):950j, 2.5:max(y_values):500j] #Creates our x and y grid from 2.5 to max x/y value with 1,000 and 2,000 points, changed 750,250 to 950 & 500
+    values = np.array(Order[l]) #creates a numpy array for our z values
+    from scipy.interpolate import griddata
+    grid_z0orig = griddata(points, values, (grid_x, grid_y), method='nearest') #
+    grid_z0 = gaussian_filter(grid_z0orig,6)
+    plt.figure(figsize=(10,3))                  #new figure
+    #plt.xlim(0,max(x_values))                              #sets the x axis limit to highest x valuu
+    #plt.ylim(0,max(y_values))                              #sets the y axis limit to highest y value
+    plt.xlim(0,80)                              #sets the x axis limit to highest x value with 2.5 border, changed 75 to 95
+    plt.ylim(0,30)                              #sets the y axis limit to highest y value with 2.5 border, changed 25 to 50
+    plt.imshow(grid_z0.T, extent=(0,max(x_values),0,max(y_values)), origin='lower',cmap='coolwarm',vmin=60,vmax=90)
+    #plt.imshow(grid_z0.T, extent=(0,max(x_values),0,max(y_values)), origin='lower',cmap='coolwarm',vmin=0,vmax=100)
+    cbar=plt.colorbar(label='{} {}'.format(Names[l].split()[1],Names[l].split()[2])) #Creates a colorbar for the transmission / wavelength
+    #plt.title("{} {} ({})".format(Names[l].split()[0],Names[l].split()[1],Name_of_File)) #Allows us to iterate through the different data titles
+    plt.savefig('{} {} ({}).svg'.format(Names[l].split()[0],Names[l].split()[1],Name_of_File),bbox_inches='tight') #Save different data titles as pdf
+    plt.show()
