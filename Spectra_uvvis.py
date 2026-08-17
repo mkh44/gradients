@@ -73,10 +73,49 @@ def get_wavelengths():
     # plt.savefig(save_path, bbox_inches='tight') #Save different data titles as pdf
     # plt.show()
 
+def transmission_vs_wl():
+
+    possible_peakW_keys = [key for key in opf.keys() if 'int' in key.lower()]
+    if not possible_int_keys:
+        raise KeyError(f"No intensity map found in {asdf_file}")
+    int_key = possible_int_keys[0]
+    int_map = af.tree[int_key]
+
+    possible_dopp_keys = [key for key in af.tree.keys() if 'dopp' in key.lower()]
+    if not possible_dopp_keys:
+        raise KeyError(f"No Doppler map found in {asdf_file}")
+    dopp_key = possible_dopp_keys[0]
+    dopp_map = af.tree[dopp_key]
+
+    possible_width_keys = [key for key in af.tree.keys() if 'width' in key.lower()]
+    if not possible_width_keys:
+        raise KeyError(f"No width map found in {asdf_file}")
+    width_key = possible_width_keys[0]
+    width_map = af.tree[width_key]
+
+    possible_vnt_keys = [key for key in af.tree.keys() if 'vnt' in key.lower()]
+    if possible_vnt_keys:
+        vnt_key = possible_vnt_keys[0]
+        vnt_map = af.tree[vnt_key]
+    else:
+        vnt_map = None
+        print(f'Warning: No VNT map found in {asdf_file}. Skipping vnt plot.')
+
+    possible_asym_keys = [key for key in af.tree.keys() if 'asym' in key.lower()]
+    if not possible_asym_keys:
+        raise KeyError(f"No asym map found in {asdf_file}")
+    asym_key = possible_asym_keys[0]
+    asym_map = af.tree[asym_key]
+
+    #PLOTTING
+    plt.figure()
+    plt.plot(PeakT_results,'r-')
+    plt.plot(PeakW_results,'b-')
+
 output_loc = r"C:\Users\molly\OneDrive\Masters\Data\MT1\Outputs"
 input_loc = r"C:\Users\molly\OneDrive\Masters\Data\MT1"
 my_file = open(os.path.join(input_loc,"MT1.zip"))
 minv = 350
 maxv = 750
 
-from
+transmission_vs_wl()
